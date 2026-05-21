@@ -37,7 +37,7 @@ void initialize_map(string& map){
 
 }
 
-char display_char(float distance_to_wall){
+char wall_char(float distance_to_wall){
     int index = (int)((distance_to_wall / render_distance) * 10.0f);
     
    
@@ -46,6 +46,17 @@ char display_char(float distance_to_wall){
     
    
     char chars[] = {'$', '@', '%', 'O', 'P', 'o', 'c', ':', '.', ' '};
+    return chars[index];
+}
+char floor_char(float distance_to_wall){
+    int index = (int)((distance_to_wall / render_distance) * 3.0f);
+    
+   
+    if (index < 0) index = 0;
+    if (index > 2) index = 2;
+    
+   
+    char chars[] = {'\'', '.', '-'};
     return chars[index];
 }
 
@@ -131,10 +142,10 @@ int main(){
                     mvwaddch(win, y, x, ' ');
                 else if(y > floor)
                     //screen[y * screen_width + x] = ' ';
-                    mvwaddch(win, y, x, ' ');
+                    mvwaddch(win, y, x,  floor_char(distance_to_wall));
                 else
                     // screen[y * screen_width + x] = '#';
-                    mvwaddch(win, y, x, display_char(distance_to_wall));
+                    mvwaddch(win, y, x, wall_char(distance_to_wall));
             }
         }
      
