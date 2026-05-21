@@ -5,8 +5,8 @@
 #include <algorithm>
 using namespace std;
 
-int screen_height = 60;
-int screen_width = 160;
+int screen_height = 30 * 3;
+int screen_width = 80 * 3;
 
 float player_x = 8;
 float player_y = 8;
@@ -22,15 +22,15 @@ void initialize_map(string& map){
     map += "#..............#";
     map += "#..............#";
     map += "#..............#";
+    map += "#......#.......#";
+    map += "#......#.......#";
+    map += "#......#.......#";
+    map += "#......#.......#";
     map += "#..............#";
     map += "#..............#";
     map += "#..............#";
     map += "#..............#";
-    map += "#..............#";
-    map += "#..............#";
-    map += "#..............#";
-    map += "#..............#";
-    map += "#..............#";
+    map += "######.........#";
     map += "#..............#";
     map += "#..............#";
     map += "################";
@@ -96,12 +96,16 @@ int main(){
         int choice = wgetch(win);
         switch(choice){
             case KEY_UP:
-                player_y += cosf(player_a) * delta * 5.0f;
-                player_x += sinf(player_a) * delta * 5.0f;
+                player_y += cosf(player_a) * delta * 2.0f;
+                player_x += sinf(player_a) * delta * 2.0f;
+                if(map[(int)player_y * map_width + (int)player_x] == '#'){
+                    player_y -= cosf(player_a) * delta * 2.0f;
+                    player_x -= sinf(player_a) * delta * 2.0f;
+                }
                 break;
             case KEY_DOWN:
-                player_y -= cosf(player_a) * delta * 5.0f;
-                player_x -= sinf(player_a) * delta * 5.0f;
+                player_y -= cosf(player_a) * delta * 2.0f;
+                player_x -= sinf(player_a) * delta * 2.0f;
                 break;
             case KEY_RIGHT:
                 player_a += 1.0f * delta;
@@ -138,17 +142,24 @@ int main(){
             int floor = screen_height - ceiling;
             for(int y = 0; y < screen_height; y++){
                 if(y < ceiling)
-                    //screen[y * screen_width + x] = ' ';
                     mvwaddch(win, y, x, ' ');
                 else if(y > floor)
-                    //screen[y * screen_width + x] = ' ';
                     mvwaddch(win, y, x,  floor_char(distance_to_wall));
                 else
-                    // screen[y * screen_width + x] = '#';
                     mvwaddch(win, y, x, wall_char(distance_to_wall));
             }
         }
-     
+        // print map:
+        for(int row = 0; row < map_height; ++row){
+            for(int col = 0; col < map_width; ++col){
+                mvwaddch(win, row, col, map[row * map_width + col]);
+            }
+            
+        }
+        mvwaddch(win, player_y, player_x, '@');
+
+
+       
         box(win, 0, 0);
         wrefresh(win);
 
