@@ -106,6 +106,10 @@ int main(){
             case KEY_DOWN:
                 player_y -= cosf(player_a) * delta * 2.0f;
                 player_x -= sinf(player_a) * delta * 2.0f;
+                if(map[(int)player_y * map_width + (int)player_x] == '#'){
+                    player_y += cosf(player_a) * delta * 2.0f;
+                    player_x += sinf(player_a) * delta * 2.0f;
+                }
                 break;
             case KEY_RIGHT:
                 player_a += 1.0f * delta;
