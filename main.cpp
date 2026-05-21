@@ -62,10 +62,12 @@ char floor_char(float distance_to_wall){
 
 
 int main(){
-    initscr();
+    initscr(); 
     noecho(); 
     cbreak();             
-
+    start_color();
+    init_pair(1, COLOR_RED, COLOR_BLACK); 
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
     int start_y, start_x;
     start_y = start_x = 10;
 
@@ -118,7 +120,8 @@ int main(){
                 player_a -= 1.0f * delta;
                 break;
 
-        }
+        }   
+        wattron(win, COLOR_PAIR(2));
 
         for (int x = 0; x < screen_width; ++x){
             float ray_angle = (player_a - FOV / 2) + ((float)x / (float)screen_width) * FOV;
@@ -145,12 +148,18 @@ int main(){
             int ceiling = (float)(screen_height / 2.0) - screen_height / ((float)distance_to_wall);
             int floor = screen_height - ceiling;
             for(int y = 0; y < screen_height; y++){
-                if(y < ceiling)
+                if(y < ceiling){
+             
                     mvwaddch(win, y, x, ' ');
-                else if(y > floor)
+                }
+                else if(y > floor){
+                    
                     mvwaddch(win, y, x,  floor_char(distance_to_wall));
-                else
+                }
+                else{
+                
                     mvwaddch(win, y, x, wall_char(distance_to_wall));
+                }
             }
         }
         // print map:
