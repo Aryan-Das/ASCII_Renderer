@@ -1,10 +1,12 @@
 #include <ncurses.h>
 #include <iostream>
 #include <cmath>
+#include <chrono>
+#include <algorithm>
 using namespace std;
 
-int screen_height = 30;
-int screen_width = 80;
+int screen_height = 60;
+int screen_width = 160;
 
 float player_x = 8;
 float player_y = 8;
@@ -36,30 +38,69 @@ void initialize_map(string& map){
 }
 
 char display_char(float distance_to_wall){
-    float normalized = distance_to_wall / render_distance;
-    char chars[' ', '.', ':', 'c', 'o', 'P', 'O', '?', '@', 219];
-    return chars[(int)(floorf(distance_to_wall  * 10.0f) / 10)];
+    int index = (int)((distance_to_wall / render_distance) * 10.0f);
+    
+   
+    if (index < 0) index = 0;
+    if (index > 9) index = 9;
+    
+   
+    char chars[] = {'$', '@', '%', 'O', 'P', 'o', 'c', ':', '.', ' '};
+    return chars[index];
 }
 
 
 int main(){
     initscr();
+    noecho(); 
+    cbreak();             
+
     int start_y, start_x;
     start_y = start_x = 10;
 
     string map;
     initialize_map(map);
+    auto tp1 = chrono::system_clock::now();
+    auto tp2 = chrono::system_clock::now();
+
+
     char* screen = new char[screen_height * screen_width];
 
 
     WINDOW* win = newwin(screen_height, screen_width, start_y, start_x);
-     box(win, 0, 0);
+    keypad(win, TRUE);
+    box(win, 0, 0);
+    
     refresh();
    
 
     wrefresh(win);
 
     while (1){
+        tp2 = chrono::system_clock::now();
+        chrono::duration<float> elapsed = tp2 - tp1;
+        tp1 = tp2;
+        float delta = elapsed.count();
+
+        int choice = wgetch(win);
+        switch(choice){
+            case KEY_UP:
+                player_y += cosf(player_a) * delta * 5.0f;
+                player_x += sinf(player_a) * delta * 5.0f;
+                break;
+            case KEY_DOWN:
+                player_y -= cosf(player_a) * delta * 5.0f;
+                player_x -= sinf(player_a) * delta * 5.0f;
+                break;
+            case KEY_RIGHT:
+                player_a += 1.0f * delta;
+                break;
+            case KEY_LEFT:
+                player_a -= 1.0f * delta;
+                break;
+
+        }
+
         for (int x = 0; x < screen_width; ++x){
             float ray_angle = (player_a - FOV / 2) + ((float)x / (float)screen_width) * FOV;
             float distance_to_wall = 0;
@@ -69,11 +110,11 @@ int main(){
             float eye_y = cosf(ray_angle);
 
             while(!hit_wall && distance_to_wall <= render_distance){
-                distance_to_wall += 0.1f;
+                distance_to_wall += 0.03f;
                 int ray_x = (int)(player_x + eye_x * distance_to_wall);
                 int ray_y = (int)(player_y + eye_y * distance_to_wall);
 
-                if(ray_x < 0 || ray_x > map_width || ray_y < 0 || ray_y > map_height){
+                if(ray_x < 0 || ray_x >= map_width || ray_y < 0 || ray_y >= map_height){
                     hit_wall = true;
                     distance_to_wall = render_distance;
                 }
@@ -93,7 +134,7 @@ int main(){
                     mvwaddch(win, y, x, ' ');
                 else
                     // screen[y * screen_width + x] = '#';
-                    mvwaddch(win, y, x, '#');
+                    mvwaddch(win, y, x, display_char(distance_to_wall));
             }
         }
      
