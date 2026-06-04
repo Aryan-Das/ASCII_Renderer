@@ -20,27 +20,46 @@ float FOV = 3.14159 / 4.0f;
 float render_distance = 16;
 float DISTANCE_THRESHOLD = 3;
 
+
+struct Sprite{
+    vector<string> data;
+    int width;
+    int height;
+};
+
 struct Enemy {
     float x;
     float y;
     float width_to_height_ratio;
-    vector<string> sprite;      
+    Sprite sprite;      
     int state;        
     float speed;
     bool is_alive;
+    float scaling_factor = 1.0f;
 
 };
 
-vector<string> load_sprite(string file_name){
+Sprite load_sprite(string file_name){
     vector<string> sprite;
     ifstream sprite_stream{file_name};
     string line;
+    int widest = 0;
     while(getline(sprite_stream, line)){
-        sprite.push_back(line);
+        sprite.push_back(line); 
     }
-    return sprite;
-
+    for(const string& str : sprite){
+        if (str.size() > widest){
+            widest = str.size();
+        }
+    }
+    
+    Sprite s;
+    s.data = sprite;
+    s.width = widest;
+    s.height = sprite.size();
+    return s;
 }
+
 
 
 
@@ -98,8 +117,9 @@ int main(){
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     vector<Enemy> enemies;
 
-    vector<string> enemy_1_sprite = load_sprite("enemy_1.txt");
-    enemies.push_back({11.0f, 11.0f, 1.0f, enemy_1_sprite, 0, 1.5f, true});
+    Sprite enemy_1_sprite = load_sprite("fred.txt");
+    cout << enemy_1_sprite.data[0];
+    enemies.push_back({11.0f, 11.0f, 2.0f, enemy_1_sprite, 0, 1.5f, true, 1.2f});
     int start_y, start_x;
     start_y = start_x = 10;
 
@@ -231,7 +251,7 @@ int main(){
                 
                 
                 
-                float ceiling = (float)(screen_height / 2.0) - screen_height / ((float)distance_to_enemy);
+                float ceiling = ((float)(screen_height / 2.0) - screen_height / ((float)distance_to_enemy)) * (float)(1.0f/enemy.scaling_factor);
                 float floor = screen_height - ceiling;
                 float display_height = floor - ceiling;
                 float display_width = display_height * enemy.width_to_height_ratio;
@@ -240,12 +260,12 @@ int main(){
                 for(int i = 0; i < display_width; ++i){
                     for(int j = 0; j < display_height; ++j){
                         int enemy_column = (int)(enemy_middle + i - (display_width / 2.0f));
-                        float sample_x = (i / display_width) * enemy.sprite.size();
-                        float sample_y = (j / display_height) * enemy.sprite.size();
+                        float sample_x = (i / display_width) * enemy.sprite.width;
+                        float sample_y = (j / display_height) * enemy.sprite.height;
                         if(enemy_column >=0 && enemy_column < screen_width && (depth_buffer[enemy_column] > distance_to_enemy)){
-                            if(enemy.sprite[sample_y][sample_x] != ' '){
-                                char ch =  enemy.sprite[sample_y][sample_x];
-                                if (sample_y < enemy.sprite.size() && sample_x < enemy.sprite[sample_y].size()){
+                            if(enemy.sprite.data[sample_y][sample_x] != ' '){
+                                char ch =  enemy.sprite.data[sample_y][sample_x];
+                                if (sample_y < enemy.sprite.height && sample_x < enemy.sprite.data[sample_y].size()){
                                     mvwaddch(win, ceiling + j, enemy_column, ch);
                                 }
                                 
