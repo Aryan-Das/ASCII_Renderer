@@ -6,8 +6,8 @@
 #include <vector>
 using namespace std;
 
-int screen_height = 30 * 1.5f;
-int screen_width = 80 * 2.0f;
+int screen_height = 45 * 1.5;
+int screen_width = 160 * 1.5;
 
 float player_x = 2;
 float player_y = 1;
@@ -27,6 +27,8 @@ struct Enemy {
     float speed;
     bool is_alive;
 };
+
+
 
 void initialize_map(string& map){
     map += "################";
@@ -94,13 +96,19 @@ int main(){
 
 
     WINDOW* win = newwin(screen_height, screen_width, start_y, start_x);
+    WINDOW *hud_win = newwin(screen_height, screen_width / 5, start_y, screen_width + start_x);
+
+  
     keypad(win, TRUE);
     box(win, 0, 0);
     
+    box(hud_win, 0, 0);
     refresh();
    
 
     wrefresh(win);
+    wrefresh(hud_win);
+
     float* depth_buffer = new float[screen_width];
     while (1){
         tp2 = chrono::system_clock::now();
