@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include <fstream>
 #include <iostream>
 #include <cmath>
 #include <chrono>
@@ -23,30 +24,43 @@ struct Enemy {
     float x;
     float y;
     float width_to_height_ratio;
-    char symbol;      
+    vector<string> sprite;      
     int state;        
     float speed;
     bool is_alive;
+
 };
+
+vector<string> load_sprite(string file_name){
+    vector<string> sprite;
+    ifstream sprite_stream{file_name};
+    string line;
+    while(getline(sprite_stream, line)){
+        sprite.push_back(line);
+    }
+    return sprite;
+
+}
+
 
 
 
 void initialize_map(string& map){
     map += "################";
-    map += "#.........#....#";
-    map += "########..#....#";
-    map += "#.........#....#";
-    map += "#..#...#.......#";
-    map += "#..#...#########";
-    map += "#..#...######..#";
-    map += "####...........#";
-    map += "#..########....#";
-    map += "#.........#....#";
-    map += "#....######....#";
     map += "#..............#";
-    map += "###########....#";
-    map += "#X.....####....#";
-    map += "###............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..........#...#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#..............#";
+    map += "#......X.......#";
+    map += "#..............#";
     map += "################";
 
 }
@@ -83,7 +97,9 @@ int main(){
     init_pair(1, COLOR_RED, COLOR_BLACK); 
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     vector<Enemy> enemies;
-    enemies.push_back({11.0f, 11.0f, 0.5f, 'D', 0, 1.5f, true});
+
+    vector<string> enemy_1_sprite = load_sprite("enemy_1.txt");
+    enemies.push_back({11.0f, 11.0f, 1.0f, enemy_1_sprite, 0, 1.5f, true});
     int start_y, start_x;
     start_y = start_x = 10;
 
@@ -188,7 +204,6 @@ int main(){
                     mvwaddch(win, y, x,  floor_char(distance_to_wall));
                 }
                 else{
-                
                     mvwaddch(win, y, x, wall_char(distance_to_wall));
                 }
             }
@@ -221,12 +236,21 @@ int main(){
                 float display_height = floor - ceiling;
                 float display_width = display_height * enemy.width_to_height_ratio;
                 float enemy_middle = (0.5f * (enemy_angle / (FOV / 2.0f)) + 0.5f) * (float)screen_width;
-
+                
                 for(int i = 0; i < display_width; ++i){
                     for(int j = 0; j < display_height; ++j){
                         int enemy_column = (int)(enemy_middle + i - (display_width / 2.0f));
+                        float sample_x = (i / display_width) * enemy.sprite.size();
+                        float sample_y = (j / display_height) * enemy.sprite.size();
                         if(enemy_column >=0 && enemy_column < screen_width && (depth_buffer[enemy_column] > distance_to_enemy)){
-                            mvwaddch(win, ceiling + j, enemy_column, enemy.symbol);
+                            if(enemy.sprite[sample_y][sample_x] != ' '){
+                                char ch =  enemy.sprite[sample_y][sample_x];
+                                if (sample_y < enemy.sprite.size() && sample_x < enemy.sprite[sample_y].size()){
+                                    mvwaddch(win, ceiling + j, enemy_column, ch);
+                                }
+                                
+                            }
+                            
                             
                         }
                     }
@@ -244,7 +268,7 @@ int main(){
             
         }
         for(Enemy& enemy : enemies){
-            mvwaddch(win, enemy.y, enemy.x, enemy.symbol);
+            mvwaddch(win, enemy.y, enemy.x, 'D');
         }
         mvwaddch(win, player_y, player_x, '@');
 
