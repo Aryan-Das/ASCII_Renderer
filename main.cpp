@@ -6,8 +6,8 @@
 #include <vector>
 using namespace std;
 
-int screen_height = 45 * 1.5;
-int screen_width = 160 * 1.5;
+int screen_height = 45 * 1.2;
+int screen_width = 160 * 1.2;
 
 float player_x = 2;
 float player_y = 1;
@@ -17,7 +17,7 @@ int map_height = 16;
 int map_width = 16;
 float FOV = 3.14159 / 4.0f;
 float render_distance = 16;
-
+float DISTANCE_THRESHOLD = 3;
 
 struct Enemy {
     float x;
@@ -117,6 +117,8 @@ int main(){
         float delta = elapsed.count();
 
         int choice = wgetch(win);
+        float last_player_x = player_x;
+        float last_player_y = player_y;
         switch(choice){
             case KEY_UP:
                 player_y += cosf(player_a) * delta * 2.0f;
@@ -142,6 +144,12 @@ int main(){
                 break;
 
         }   
+        float delta_y = player_y - last_player_y;
+        float delta_x = player_x - last_player_x;
+        if (((delta_y*delta_y) + (delta_x*delta_x)) > DISTANCE_THRESHOLD){
+            player_y = last_player_y;
+            player_x = last_player_x;
+        }
         wattron(win, COLOR_PAIR(2));
         
         for (int x = 0; x < screen_width; ++x){
