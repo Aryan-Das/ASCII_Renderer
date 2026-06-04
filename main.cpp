@@ -22,6 +22,7 @@ float DISTANCE_THRESHOLD = 3;
 struct Enemy {
     float x;
     float y;
+    float width_to_height_ratio;
     char symbol;      
     int state;        
     float speed;
@@ -82,7 +83,7 @@ int main(){
     init_pair(1, COLOR_RED, COLOR_BLACK); 
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
     vector<Enemy> enemies;
-    enemies.push_back({11.0f, 11.0f, 'D', 0, 1.5f, true});
+    enemies.push_back({11.0f, 11.0f, 0.5f, 'D', 0, 1.5f, true});
     int start_y, start_x;
     start_y = start_x = 10;
 
@@ -174,8 +175,8 @@ int main(){
                 }
             
             }
-            int ceiling = (float)(screen_height / 2.0) - screen_height / ((float)distance_to_wall);
-            int floor = screen_height - ceiling;
+            float ceiling = (float)(screen_height / 2.0) - screen_height / ((float)distance_to_wall);
+            float floor = screen_height - ceiling;
             depth_buffer[x] = distance_to_wall;
             for(int y = 0; y < screen_height; y++){
                 if(y < ceiling){
@@ -198,8 +199,9 @@ int main(){
             float offset_x = enemy.x - player_x;
             float offset_y = enemy.y - player_y;
             float distance_to_enemy = sqrtf(offset_x * offset_x + offset_y * offset_y);
-
-            float enemy_angle = atan2f(offset_y, offset_x) - player_a;
+            float eye_x = sinf(player_a);
+            float eye_y = cosf(player_a);
+            float enemy_angle =  atan2f(eye_y,eye_x) - atan2f(offset_y, offset_x);
             
             
             if (enemy_angle < -3.14159f) enemy_angle += 2.0f * 3.14159f;
@@ -209,21 +211,23 @@ int main(){
             bool is_in_fov = fabsf(enemy_angle) < (FOV / 2.0f);
             if (is_in_fov && distance_to_enemy > 0.5f && distance_to_enemy < render_distance) {
         
-         
+                
                 int enemy_screen_x = (int)((screen_width / 2.0f) + (enemy_angle / FOV) * screen_width);
                 
                 
-                int sprite_size = (int)(screen_height / distance_to_enemy);
-                int ceiling = (screen_height / 2) - (sprite_size);
-                int floor = (screen_height / 2) + (sprite_size);
                 
-                for (int sx = enemy_screen_x - (sprite_size / 2); sx < enemy_screen_x + (sprite_size / 2); ++sx) {
-            
-                    if (sx >= 0 && sx < screen_width && depth_buffer[sx] > distance_to_enemy) {
-                        for (int sy = ceiling; sy < floor; ++sy) {
-                            if (sy >= 0 && sy < screen_height) {
-                                mvwaddch(win, sy, sx, enemy.symbol);
-                            }
+                float ceiling = (float)(screen_height / 2.0) - screen_height / ((float)distance_to_enemy);
+                float floor = screen_height - ceiling;
+                float display_height = floor - ceiling;
+                float display_width = display_height * enemy.width_to_height_ratio;
+                float enemy_middle = (0.5f * (enemy_angle / (FOV / 2.0f)) + 0.5f) * (float)screen_width;
+
+                for(int i = 0; i < display_width; ++i){
+                    for(int j = 0; j < display_height; ++j){
+                        int enemy_column = (int)(enemy_middle + i - (display_width / 2.0f));
+                        if(enemy_column >=0 && enemy_column < screen_width && (depth_buffer[enemy_column] > distance_to_enemy)){
+                            mvwaddch(win, ceiling + j, enemy_column, enemy.symbol);
+                            
                         }
                     }
                 }
